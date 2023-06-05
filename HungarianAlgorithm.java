@@ -2,7 +2,14 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-
+/**
+ * An implemetation of the Kuhn–Munkres assignment algorithm of the year 1957.
+ * https://en.wikipedia.org/wiki/Hungarian_algorithm
+ *
+ *
+ * @author https://github.com/aalmi | march 2014
+ * @version 1.0
+ */
 public class HungarianAlgorithm {
 
     int[][] matrix; // initial matrix (cost matrix)
@@ -21,49 +28,59 @@ public class HungarianAlgorithm {
         }
 
         this.matrix = matrix;
-        squareInRow = new int[matrix.length];       // squareInRow & squareInCol indicate the position
-        squareInCol = new int[matrix[0].length];    // of the marked zeroes
+        squareInRow = new int[matrix.length]; // squareInRow & squareInCol indicate the position
+        squareInCol = new int[matrix[0].length]; // of the marked zeroes
 
-        rowIsCovered = new int[matrix.length];      // indicates whether a row is covered
-        colIsCovered = new int[matrix[0].length];   // indicates whether a column is covered
+        rowIsCovered = new int[matrix.length]; // indicates whether a row is covered
+        colIsCovered = new int[matrix[0].length]; // indicates whether a column is covered
         staredZeroesInRow = new int[matrix.length]; // storage for the 0*
         Arrays.fill(staredZeroesInRow, -1);
         Arrays.fill(squareInRow, -1);
         Arrays.fill(squareInCol, -1);
     }
 
-   
+    /**
+     * find an optimal assignment
+     *
+     * @return optimal assignment
+     */
     public int[][] findOptimalAssignment() {
-        step1();    // reduce matrix
-        step2();    // mark independent zeroes
-        step3();    // cover columns which contain a marked zero
+        step1(); // reduce matrix
+        step2(); // mark independent zeroes
+        step3(); // cover columns which contain a marked zero
 
         while (!allColumnsAreCovered()) {
             int[] mainZero = step4();
-            while (mainZero == null) {      // while no zero found in step4
+            while (mainZero == null) { // while no zero found in step4
                 step7();
                 mainZero = step4();
             }
             if (squareInRow[mainZero[0]] == -1) {
                 // there is no square mark in the mainZero line
                 step6(mainZero);
-                step3();    // cover columns which contain a marked zero
+                step3(); // cover columns which contain a marked zero
             } else {
                 // there is square mark in the mainZero line
                 // step 5
-                rowIsCovered[mainZero[0]] = 1;  // cover row of mainZero
-                colIsCovered[squareInRow[mainZero[0]]] = 0;  // uncover column of mainZero
+                rowIsCovered[mainZero[0]] = 1; // cover row of mainZero
+                colIsCovered[squareInRow[mainZero[0]]] = 0; // uncover column of mainZero
                 step7();
             }
         }
 
         int[][] optimalAssignment = new int[matrix.length][];
         for (int i = 0; i < squareInCol.length; i++) {
-            optimalAssignment[i] = new int[]{i, squareInCol[i]};
+            optimalAssignment[i] = new int[] { i, squareInCol[i] };
         }
         return optimalAssignment;
     }
 
+    /**
+     * Check if all columns are covered. If that's the case then the
+     *      * optimal solution is found
+     *
+     * @return true or false
+     */
     private boolean allColumnsAreCovered() {
         for (int i : colIsCovered) {
             if (i == 0) {
@@ -113,7 +130,8 @@ public class HungarianAlgorithm {
 
     /**
      * Step 2:
-     * mark each 0 with a "square", if there are no other marked zeroes in the same row or column
+     * mark each 0 with a "square", if there are no other marked zeroes in the same
+     * row or column
      */
     private void step2() {
         int[] rowHasSquare = new int[matrix.length];
@@ -121,7 +139,8 @@ public class HungarianAlgorithm {
 
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix.length; j++) {
-                // mark if current value == 0 & there are no other marked zeroes in the same row or column
+                // mark if current value == 0 & there are no other marked zeroes in the same row
+                // or column
                 if (matrix[i][j] == 0 && rowHasSquare[i] == 0 && colHasSquare[j] == 0) {
                     rowHasSquare[i] = 1;
                     colHasSquare[j] = 1;
@@ -190,7 +209,7 @@ public class HungarianAlgorithm {
                 for (int j = 0; j < matrix[i].length; j++) {
                     if (matrix[i][j] == 0 && colIsCovered[j] == 0) {
                         staredZeroesInRow[i] = j; // mark as 0*
-                        return new int[]{i, j};
+                        return new int[] { i, j };
                     }
                 }
             }
@@ -209,7 +228,7 @@ public class HungarianAlgorithm {
         int j = mainZero[1];
 
         Set<int[]> K = new LinkedHashSet<>();
-        //(a)
+        // (a)
         // add Z_0 to K
         K.add(mainZero);
         boolean found = false;
@@ -218,13 +237,14 @@ public class HungarianAlgorithm {
             // add Z_1 to K if
             // there is a zero Z_1 which is marked with a "square " in the column of Z_0
             if (squareInCol[j] != -1) {
-                K.add(new int[]{squareInCol[j], j});
+                K.add(new int[] { squareInCol[j], j });
                 found = true;
             } else {
                 found = false;
             }
 
-            // if no zero element Z_1 marked with "square" exists in the column of Z_0, then cancel the loop
+            // if no zero element Z_1 marked with "square" exists in the column of Z_0, then
+            // cancel the loop
             if (!found) {
                 break;
             }
@@ -235,7 +255,7 @@ public class HungarianAlgorithm {
             j = staredZeroesInRow[i];
             // add the new Z_0 to K
             if (j != -1) {
-                K.add(new int[]{i, j});
+                K.add(new int[] { i, j });
                 found = true;
             } else {
                 found = false;
@@ -262,5 +282,36 @@ public class HungarianAlgorithm {
         Arrays.fill(staredZeroesInRow, -1);
         Arrays.fill(rowIsCovered, 0);
         Arrays.fill(colIsCovered, 0);
+    }
+
+    public static void main(String[] args) {
+
+        // the problem is written in the form of a matrix
+        int[][] dataMatrix = {
+                // col0 col1 col2 col3
+                { 70, 40, 20, 55 }, // row0
+                { 65, 60, 45, 90 }, // row1
+                { 65, 45, 50, 75 }, // row2
+                { 25, 30, 55, 40 } // row3
+        };
+
+        // find optimal assignment
+        HungarianAlgorithm ha = new HungarianAlgorithm(dataMatrix);
+        int[][] assignment = ha.findOptimalAssignment();
+
+        if (assignment.length > 0) {
+            int total = 0;
+            // print assignment
+            for (int i = 0; i < assignment.length; i++) {
+                total += dataMatrix[assignment[i][0]][assignment[i][1]];
+                System.out.print("Col" + assignment[i][0] + " => Row" + assignment[i][1] + " ("
+                         + ")");
+                System.out.println();
+
+            }
+            System.out.println("Total Minumum Assignment:" + total);
+        } else {
+            System.out.println("no assignment found!");
+        }
     }
 }
